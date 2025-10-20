@@ -43,7 +43,7 @@
                     </div>
                     <div class="population-graph">
                         <!-- <img id="graph-image" src="../static/graph.png" data-src="{% url 'congestion_graph' file_name='111.mp4' %}"> -->
-                        <img id="graph-image" src="{% static 'graph.png' %}" data-src="{% url 'congestion_graph' file_name='111.mp4' %}">
+                        <img id="graph-image" src="{% static './image/graph.png' %}" data-src="{% url 'congestion_graph' file_name='111.mp4' %}">
                     </div>
                     <div class="population-details" data-url="{% url 'congestion_status' file_name='111.mp4' %}">
                         <p id="population-count" class="count">측정중...</p>
@@ -56,9 +56,9 @@
                     <button class="btn prev" aria-label="이전">‹</button>
                     <div class="viewport">
                         <div class="track">
-                            <img src="{% static 'cafe0.jpg' %}" alt="">
-                            <img src="{% static 'cafe1.jpg' %}" alt="">
-                            <img src="{% static 'cafe2.jpg' %}" alt="">
+                            <img src="{% static './image/cafe0.jpg' %}" alt="">
+                            <img src="{% static './image/cafe1.jpg' %}" alt="">
+                            <img src="{% static './image/cafe2.jpg' %}" alt="">
                             
                         </div>
                     </div>
@@ -72,7 +72,7 @@
             <button id="close-video-modal" class="close-button">&times;</button>
             <h2>실시간 영상</h2>
             <div class="video-container">
-                <img src="{% url 'live_stream_view' file_name='111.mp4' %}" alt="Live Stream" style="width:100%; max-width:1270px; border-radius: 8px;">                
+                <img src="{% url 'live_stream_view' file_name='supermaket.mp4' %}" alt="Live Stream" style="width:100%; max-width:1270px; border-radius: 8px;">                
             </div>
         </div>
     </div>
