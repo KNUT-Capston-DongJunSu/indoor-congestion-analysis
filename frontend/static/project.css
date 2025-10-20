@@ -1,118 +1,742 @@
 /* =================================================== */
-/* 1. 기본 설정 및 폰트 */
+/* Mobile App Style - 모든 화면에서 모바일 앱 크기 */
 /* =================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Noto Sans KR', sans-serif; background-color: #f4f6f9; color: #333; display: flex; flex-direction: column; height: 100vh; }
-.hidden { display: none !important; }
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
 
-/* =================================================== */
-/* 2. 데스크탑 레이아웃 (기본) */
-/* =================================================== */
-.top-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #fff; border-bottom: 1px solid #e0e0e0; height: 60px; }
-.container { display: flex; flex: 1; overflow: hidden; }
-.sidebar { width: 80px; background-color: #007bff; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px 0; flex-shrink: 0; }
-.main-content { display: flex; flex: 1; }
-.info-panel { width: 750px; flex-shrink: 0; padding: 20px; background-color: #fff; overflow-y: auto; border-right: 1px solid #e0e0e0; }
-.imag-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; background-color: #e9ecef; padding: 20px; }
-.main-title { font-size: 24px; font-weight: 700; }
-.clock { font-size: 16px; min-width: 180px; text-align: right; }
-.population-graph { width: 100%; height: auto;}
-.population-graph img { width : 100%; max-width : 500px; height: auto; display:block; margin : 0 auto;}
-.header-placeholder { min-width: 180px; }
-.sidebar .logo { font-size: 24px; margin-bottom: 30px; }
-.sidebar .menu ul { list-style: none; }
-.sidebar .menu li { padding: 25px 0; text-align: center; cursor: pointer; width: 100%; }
-.sidebar .menu li:hover, .sidebar .menu li.active { background-color: #0056b3; }
-.sidebar .menu a { color: white; text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 12px; }
-.sidebar .menu i { font-size: 20px; margin-bottom: 5px; }
-.info-panel .header h2 { font-size: 28px; }
-.card { background-color: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 15px; border: 1px solid #e9ecef; }
-.card h3 { margin-bottom: 15px; font-size: 18px; }
-.icon { display: flex; justify-content: center; align-items: center; height: 250px; margin-bottom: 20px; }
-.carousel { width: 100%; max-width: 600px; position: relative; }
-.viewport { width: 100%; overflow: hidden; }
-.track { display: flex; transition: transform 0.5s ease; }
-.track img { width: 100%; flex-shrink: 0; }
-.btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; background: rgba(0,0,0,0.5); color: #fff; border: none; padding: 8px 12px; font-size: 24px; cursor: pointer; }
-.prev { left: 10px; }
-.next { right: 10px; }
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-.modal-content { background-color: white; padding: 20px; border-radius: 10px; max-width: 90%; max-height: 90%; overflow-y: auto; position: relative; }
-.close-button { position: absolute; top: 10px; right: 15px; font-size: 28px; background: none; border: none; cursor: pointer; }
-
-/* =================================================== */
-/* 3. 모바일 반응형 스타일 (768px 이하) */
-/* =================================================== */
-@media (max-width: 768px) {
-    .container { padding-top: 60px; padding-bottom: 60px; }
-
-    .main-title {
-        font-size: 1rem; /* 모바일에서는 18px로 더 작게 표시 */
-    }
-    
-    /* 데스크탑 사이드바 숨기기 */
-    .container > .sidebar {
-        display: none;
-    }
-
-    .clock {
-        position: static; 
-    }
-    .header-placeholder {
-        display: none;
-    }
-    
-    /* 모바일용 하단 메뉴바 스타일 (기존 .sidebar 재활용) */
-    body > .container > .sidebar {
-        display: flex; /* ✨ 숨김 해제 */
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 60px;
-        flex-direction: row; /* ✨ 가로 방향 설정 */
-        z-index: 100;
-        border-top: 1px solid #e0e0e0;
-        background-color: #fff;
-    }
-    .sidebar .logo { display: none; }
-    .sidebar .menu { width: 100%; }
-    .sidebar .menu ul {
-        display: flex;
-        flex-direction: row; /* ✨ 버튼 가로 배열 */
-        justify-content: space-around; /* ✨ 균등 분배 */
-        align-items: center;
-        width: 100%;
-        height: 100%;
-    }
-    .sidebar .menu li {
-        flex: 1; /* ✨ 1:1 비율로 공간 차지 */
-        padding: 0;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .sidebar .menu a { color: #555; }
-    .sidebar .menu li.active a { color: #007bff; }
-    
-    /* 메인 콘텐츠 영역 및 탭 기능 */
-    .main-content { display: block; overflow-y: auto; }
-    .content-panel { display: none; }
-    .content-panel.active { display: block; }
-    .info-panel, .imag-area { width: 100%; border-right: none; padding: 15px; }
-    
-    /* 기타 모바일용 스타일 */
-    .icon { height: 180px; }
-    .info-panel .header h2 { font-size: 22px; }
-
-    .population-graph img {
-    width: 100%;      /* 부모 너비에 꽉 채움 */
-    max-width: 500px; /* 하지만 최대 500px를 넘지 않도록 제한 */
-    height: auto;     /* 높이는 너비 비율에 맞춰 자동 조절 */
-    display: block;   /* 중앙 정렬을 위해 block 요소로 변경 */
-    margin: 0 auto;   /* 중앙 정렬 */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
+
+body { 
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #000;
+    color: #1a1a1a;
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh;
+    overflow: hidden;
+    margin: 0 auto;
+    max-width: 430px; /* 모든 화면에서 아이폰 크기로 제한 */
+}
+
+.hidden { 
+    display: none !important; 
+}
+
+/* =================================================== */
+/* 상단 상태바 스타일 (모바일 앱 느낌) */
+/* =================================================== */
+.top-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+    height: 60px;
+    position: fixed;
+    top: 0;
+    left: 50%; /* 중앙 정렬 */
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    z-index: 1000;
+}
+
+.header-placeholder { 
+    width: 60px;
+}
+
+.main-title { 
+    font-size: 18px; 
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.3px;
+}
+
+.clock { 
+    font-size: 13px; 
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    font-variant-numeric: tabular-nums;
+}
+
+/* =================================================== */
+/* 메인 컨테이너 */
+/* =================================================== */
+.container { 
+    display: flex; 
+    flex: 1;
+    padding-top: 60px;
+    padding-bottom: 80px;
+    overflow: hidden;
+    background: #fff;
+    width: 100%;
+    max-width: 430px;
+}
+
+/* 데스크탑 사이드바 완전히 제거 */
+.sidebar {
+    display: none !important;
+}
+
+/* =================================================== */
+/* 메인 콘텐츠 영역 */
+/* =================================================== */
+.main-content {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* 모든 패널을 전체 화면으로 */
+.content-panel {
+    display: none;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.content-panel.active {
+    display: block;
+}
+
+.info-panel {
+    background: #fff;
+    padding: 20px 16px;
+}
+
+/* 스크롤바 숨김 */
+.info-panel::-webkit-scrollbar,
+.content-panel::-webkit-scrollbar {
+    display: none;
+}
+
+.info-panel,
+.content-panel {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* =================================================== */
+/* 헤더 섹션 */
+/* =================================================== */
+.info-panel .header {
+    margin-bottom: 24px;
+}
+
+.info-panel .header h2 { 
+    font-size: 28px;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+}
+
+.info-panel .header span {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+/* =================================================== */
+/* 카드 스타일 - 모던 앱 스타일 */
+/* =================================================== */
+.card { 
+    background: #f8f9fa;
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 16px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.card:active {
+    transform: scale(0.98);
+    background: #f1f3f5;
+}
+
+.card h3 { 
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 16px;
+    letter-spacing: -0.3px;
+}
+
+/* =================================================== */
+/* 아이콘 영역 */
+/* =================================================== */
+.icon { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    height: 200px;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(168, 85, 247, 0.08));
+    border-radius: 24px;
+    position: relative;
+}
+
+.icon i {
+    font-size: 80px !important;
+    filter: drop-shadow(0 4px 20px rgba(139, 92, 246, 0.3));
+}
+
+/* =================================================== */
+/* 인구 정보 디스플레이 */
+/* =================================================== */
+.population-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 24px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(168, 85, 247, 0.08));
+    border-radius: 20px;
+    margin-top: 16px;
+}
+
+.population-details .count {
+    font-size: 48px;
+    font-weight: 800;
+    color: #8B5CF6;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.population-details .step {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    padding: 8px 20px;
+    background: rgba(139, 92, 246, 0.15);
+    border-radius: 12px;
+}
+
+/* =================================================== */
+/* 그래프 영역 */
+/* =================================================== */
+.population-graph {
+    margin: 16px 0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.population-graph img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 16px;
+    border: 1px solid #e9ecef;
+}
+
+/* =================================================== */
+/* 이미지 영역 - 전체 화면 */
+/* =================================================== */
+.imag-area {
+    display: none;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.imag-area.active {
+    display: block;
+}
+
+/* 뷰 전환 컨텐츠 */
+.view-content {
+    display: none;
+}
+
+.view-content.active {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 20px 16px;
+}
+
+/* 그래프/비디오 컨테이너 */
+.graph-container,
+.video-container {
+    width: 100%;
+    background: #fff;
+}
+
+.graph-container h3,
+.video-container h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.graph-container {
+    background: #f8f9fa;
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.graph-container img {
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    border: 1px solid #e9ecef;
+}
+
+.video-container iframe,
+.video-container video,
+.video-container img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 16px;
+    border: none;
+}
+
+/* =================================================== */
+/* 캐러셀 */
+/* =================================================== */
+.carousel {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.viewport {
+    overflow: hidden;
+    border-radius: 20px;
+}
+
+.track {
+    display: flex;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.track img {
+    width: 100%;
+    flex-shrink: 0;
+    display: block;
+}
+
+.btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    color: #1a1a1a;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active {
+    transform: translateY(-50%) scale(0.9);
+}
+
+.btn.prev { left: 12px; }
+.btn.next { right: 12px; }
+
+/* =================================================== */
+/* 하단 탭바 (네이티브 앱 스타일) - 모든 화면에서 표시 */
+/* =================================================== */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 430px !important;
+    height: 80px !important;
+    background: rgba(0, 0, 0, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    border-top: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+    display: flex !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    padding: 0 20px !important;
+    z-index: 1000 !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+.bottom-nav .menu {
+    width: 100%;
+}
+
+.bottom-nav .menu ul {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    list-style: none;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+.bottom-nav .menu li {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.bottom-nav .menu a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.5);
+    gap: 4px;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.bottom-nav .menu li.active a {
+    color: #8B5CF6;
+}
+
+.bottom-nav .menu i {
+    font-size: 24px;
+}
+
+.bottom-nav .menu span {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+}
+
+.bottom-nav .menu li.active a::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px;
+    height: 3px;
+    background: #8B5CF6;
+    border-radius: 0 0 3px 3px;
+}
+
+/* 추가 스타일 */
+.live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ef4444;
+    margin-bottom: 16px;
+    animation: pulse-badge 2s ease-in-out infinite;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+@keyframes pulse-badge {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.dashboard-card {
+    background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+    border-radius: 24px;
+    padding: 24px;
+    margin-bottom: 16px;
+    color: white;
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.25);
+}
+
+.dashboard-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: white;
+    opacity: 0.9;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.dashboard-item {
+    text-align: center;
+}
+
+.dashboard-item .value {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.dashboard-item .label {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.time-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.time-slot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(139, 92, 246, 0.08);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.time-slot:active {
+    transform: scale(0.98);
+    background: rgba(139, 92, 246, 0.12);
+}
+
+.time-slot .time {
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.congestion-bar {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.congestion-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e9ecef;
+}
+
+.congestion-dot.active {
+    background: linear-gradient(135deg, #8B5CF6, #A855F7);
+}
+
+.time-slot .status {
+    font-size: 13px;
+    font-weight: 500;
+    color: #8B5CF6;
+}
+
+.recommend-card {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
+    border-radius: 20px;
+    padding: 20px;
+    border: 2px solid rgba(34, 197, 94, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.recommend-icon {
+    font-size: 36px;
+    color: #22c55e;
+}
+
+.recommend-content h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+}
+
+.recommend-content p {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.recommend-content .time-highlight {
+    font-size: 18px;
+    font-weight: 700;
+    color: #22c55e;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.quick-btn {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 16px;
+    padding: 20px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-btn:active {
+    transform: scale(0.95);
+    background: #f1f3f5;
+}
+
+.quick-btn i {
+    font-size: 28px;
+    margin-bottom: 8px;
+    display: block;
+    background: linear-gradient(135deg, #8B5CF6, #A855F7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.quick-btn span {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.trend-chart {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    height: 80px;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.trend-day {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.trend-bars {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+    height: 50px;
+}
+
+.trend-bar {
+    width: 6px;
+    background: linear-gradient(180deg, #8B5CF6, #A855F7);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.trend-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row i {
+    font-size: 18px;
+    color: #8B5CF6;
+    width: 24px;
+    text-align: center;
+}
+
+.info-row .info-text {
+    flex: 1;
+    font-size: 14px;
+    color: #1a1a1a;
+}
+
+.weather-card {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1));
+    border-radius: 20px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.weather-icon {
+    font-size: 32px;
+}
+
+.weather-content {
+    flex: 1;
+}
+
+.weather-content .temp {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.weather-content .desc {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+    margin-top: 2px;
+}
+
+/* =================================================== */
+/* 미디어 쿼리 - 모든 화면에서 동일한 스타일 */
+/* =================================================== */
+@media (min-width: 431px) {
+    /* 큰 화면에서는 중앙 정렬만 유지 */
+    body {
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+    }
 }
 

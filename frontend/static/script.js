@@ -7,17 +7,13 @@
 
     function updateClock() {
         const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const date = String(now.getDate()).padStart(2, '0');
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        clockElement.textContent = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+        clockElement.textContent = `${hours}:${minutes}`;
     }
 
-    updateClock(); // 즉시 실행
-    setInterval(updateClock, 1000); // 1초마다 업데이트
+    updateClock();
+    setInterval(updateClock, 1000);
 })();
 
 
@@ -34,12 +30,11 @@
     let currentIndex = 0;
 
     function updateSlidePosition() {
-        if (slides.length === 0) return; // 슬라이드가 없을 경우 오류 방지
+        if (slides.length === 0) return;
         const slideWidth = slides[0].getBoundingClientRect().width;
         const offset = -currentIndex * slideWidth;
         track.style.transform = `translateX(${offset}px)`;
         
-        // 버튼 활성화/비활성화
         prevButton.disabled = currentIndex === 0;
         nextButton.disabled = currentIndex === slides.length - 1;
     }
@@ -58,10 +53,7 @@
         }
     });
 
-    // 창 크기 변경 시 슬라이드 위치 재조정
     window.addEventListener('resize', updateSlidePosition);
-    
-    // 초기화
     updateSlidePosition();
 })();
 
@@ -74,13 +66,14 @@
     if (!graphImage) return;
 
     function updateGraph() {
-        // 이미지 URL에 현재 시간을 쿼리 파라미터로 추가하여 캐시 방지
         const baseURL = graphImage.dataset.src;
-        graphImage.src = `${baseURL}?t=${new Date().getTime()}`;
+        if (baseURL) {
+            graphImage.src = `${baseURL}?t=${new Date().getTime()}`;
+        }
     }
 
-    updateGraph(); // 즉시 실행
-    setInterval(updateGraph, 5000); // 5초마다 업데이트
+    updateGraph();
+    setInterval(updateGraph, 5000);
 })();
 
 
@@ -92,13 +85,18 @@
     if (!populationDiv) return;
 
     const countElement = document.getElementById('population-count');
-    const congestionElement = document.getElementById('congestion-steps'); // 변수 이름 수정 (CongestionElement -> congestionElement)
+    const congestionElement = document.getElementById('congestion-steps');
     const iconElement = document.getElementById('density_Icon');
+    
+    // 대시보드 요소들
+    const dashboardCount = document.getElementById('current-count');
+    const dashboardStatus = document.getElementById('current-status');
+    const dashboardWait = document.getElementById('wait-time');
+    
     const apiUrl = populationDiv.dataset.url;
 
     if (!countElement || !congestionElement || !iconElement || !apiUrl) return;
 
-    // 혼잡도 상태에 따라 아이콘과 색상을 변경하는 함수
     function updateIcon(label) {
         let newIconClass = '';
         let newColor = '';
@@ -106,31 +104,38 @@
         switch (label) {
             case "원활":
                 newIconClass = 'fa-solid fa-face-grin-beam fa-8x';
-                newColor = '#5cb85c'; // 초록색
+                newColor = '#10b981';
                 break;
             case "보통":
                 newIconClass = 'fa-solid fa-face-meh fa-8x';
-                newColor = '#f0ad4e'; // 주황색
+                newColor = '#f59e0b';
                 break;
             case "혼잡":
                 newIconClass = 'fa-solid fa-face-frown fa-8x';
-                newColor = '#d9534f'; // 빨간색
+                newColor = '#ef4444';
                 break;
             case "매우 혼잡":
                 newIconClass = 'fa-solid fa-face-dizzy fa-8x';
-                newColor = '#000000';
+                newColor = '#dc2626';
                 break;
-
-            default: // '오류' 또는 알 수 없는 값
+            default:
                 newIconClass = 'fa-solid fa-face-sad-tear fa-8x';
-                newColor = '#f700ffff';
+                newColor = '#8B5CF6';
                 break;
         }
         iconElement.className = newIconClass;
         iconElement.style.color = newColor;
     }
 
-    // API를 호출하여 혼잡도 데이터를 가져오고 UI를 업데이트하는 함수
+    function calculateWaitTime(count, label) {
+        // 혼잡도에 따른 예상 대기 시간 계산
+        if (label === "원활") return "즉시";
+        if (label === "보통") return "2-5분";
+        if (label === "혼잡") return "5-10분";
+        if (label === "매우 혼잡") return "10분+";
+        return "측정중";
+    }
+
     function updateStatus() {
         fetch(apiUrl)
             .then(response => {
@@ -140,51 +145,165 @@
                 return response.json();
             })
             .then(data => {
-                countElement.textContent = `${data.object_count}명`;
-                congestionElement.textContent = data.label;
-                updateIcon(data.label);
+                const count = data.object_count;
+                const label = data.label;
+                
+                // 인구 뷰 업데이트
+                countElement.textContent = `${count}명`;
+                congestionElement.textContent = label;
+                updateIcon(label);
+                
+                // 대시보드 업데이트
+                if (dashboardCount) dashboardCount.textContent = `${count}명`;
+                if (dashboardStatus) dashboardStatus.textContent = label;
+                if (dashboardWait) dashboardWait.textContent = calculateWaitTime(count, label);
             })
             .catch(error => {
                 console.error('혼잡도 데이터를 불러오는 데 실패했습니다:', error);
                 countElement.textContent = '오류';
                 congestionElement.textContent = '알 수 없음';
                 updateIcon('오류');
+                
+                if (dashboardCount) dashboardCount.textContent = '-';
+                if (dashboardStatus) dashboardStatus.textContent = '오류';
+                if (dashboardWait) dashboardWait.textContent = '-';
             });
     }
 
-    updateStatus(); // 즉시 실행
-    setInterval(updateStatus, 5000); // 5초마다 업데이트
+    updateStatus();
+    setInterval(updateStatus, 5000);
 })();
 
 
 // ===================================================
-// 5. 실시간 영상 모달 팝업 기능
+// 5. 모바일 앱 스타일 네비게이션 & 뷰 전환
 // ===================================================
-(function setupVideoModal() {
-    const openModalBtn = document.getElementById('open-video-modal');
-    const closeModalBtn = document.getElementById('close-video-modal');
-    const modalOverlay = document.getElementById('video-modal-overlay');
-
-    if (!openModalBtn || !closeModalBtn || !modalOverlay) return;
-
-    // 모달 열기
-    function openModal() {
-        modalOverlay.classList.remove('hidden');
-    }
-
-    // 모달 닫기
-    function closeModal() {
-        modalOverlay.classList.add('hidden');
-    }
-
-    // 이벤트 리스너 등록
-    openModalBtn.addEventListener('click', openModal);
-    closeModalBtn.addEventListener('click', closeModal);
+(function setupAppNavigation() {
+    const homeTab = document.getElementById('home-tab');
+    const videoBtn = document.getElementById('video-view-btn');
+    const populationBtn = document.getElementById('population-view-btn');
     
-    // 모달 바깥 영역 클릭 시 닫기
-    modalOverlay.addEventListener('click', (event) => {
-        if (event.target === modalOverlay) {
-            closeModal();
+    const homeView = document.getElementById('home-view');
+    const videoView = document.getElementById('video-view');
+    const populationView = document.getElementById('population-view');
+    
+    const infoPanel = document.querySelector('.info-panel');
+    const imagArea = document.querySelector('.imag-area');
+    
+    const allTabs = [homeTab, videoBtn, populationBtn];
+    
+    function activateTab(activeTab) {
+        allTabs.forEach(tab => {
+            if (tab) tab.classList.remove('active');
+        });
+        if (activeTab) activeTab.classList.add('active');
+    }
+    
+    function switchView(viewType) {
+        // 모든 뷰 숨기기
+        if (infoPanel) {
+            infoPanel.classList.remove('active');
+            infoPanel.style.display = 'none';
         }
+        if (imagArea) {
+            imagArea.classList.remove('active');
+            imagArea.style.display = 'none';
+        }
+        if (videoView) videoView.classList.remove('active');
+        if (populationView) populationView.classList.remove('active');
+        
+        switch(viewType) {
+            case 'home':
+                if (infoPanel) {
+                    infoPanel.classList.add('active');
+                    infoPanel.style.display = 'block';
+                }
+                activateTab(homeTab);
+                break;
+                
+            case 'population':
+                if (imagArea) {
+                    imagArea.classList.add('active');
+                    imagArea.style.display = 'flex';
+                }
+                if (populationView) populationView.classList.add('active');
+                activateTab(populationBtn);
+                break;
+                
+            case 'video':
+                if (imagArea) {
+                    imagArea.classList.add('active');
+                    imagArea.style.display = 'flex';
+                }
+                if (videoView) videoView.classList.add('active');
+                activateTab(videoBtn);
+                break;
+        }
+    }
+    
+    if (homeTab) {
+        homeTab.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchView('home');
+        });
+    }
+    
+    if (populationBtn) {
+        populationBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchView('population');
+        });
+    }
+    
+    if (videoBtn) {
+        videoBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchView('video');
+        });
+    }
+    
+    switchView('home');
+})();
+
+
+// ===================================================
+// 6. 터치 제스처 지원
+// ===================================================
+(function setupTouchGestures() {
+    const imagArea = document.querySelector('.imag-area');
+    if (!imagArea) return;
+    
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchEndX - touchStartX;
+        
+        if (Math.abs(diff) > swipeThreshold) {
+            const videoView = document.getElementById('video-view');
+            const populationView = document.getElementById('population-view');
+            const videoBtn = document.getElementById('video-view-btn');
+            const populationBtn = document.getElementById('population-view-btn');
+            
+            if (diff > 0) {
+                if (videoView && videoView.classList.contains('active')) {
+                    populationBtn.click();
+                }
+            } else {
+                if (populationView && populationView.classList.contains('active')) {
+                    videoBtn.click();
+                }
+            }
+        }
+    }
+    
+    imagArea.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+    
+    imagArea.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
     });
 })();

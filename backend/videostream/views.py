@@ -38,6 +38,8 @@ def live_stream_view(request, file_name):
 def congestion_status(request, file_name):
     """현재 혼잡도 상태를 JSON으로 반환하는 API 뷰"""
     # ★★★ 전역 변수 대신 Django 캐시에서 상태 조회 ★★★
+    stream_manager.start_processor_if_not_running(file_name)
+    
     status = cache.get(f'{file_name}_current_congestion_status', {
         "level": 0,
         "label": "측정중",
@@ -49,6 +51,8 @@ def congestion_status(request, file_name):
 
 def congestion_graph_view(request, file_name):
     """캐시에 저장된 데이터를 바탕으로 통일된 y축을 사용하는 그래프 이미지를 생성하여 반환"""
+    stream_manager.start_processor_if_not_running(file_name)
+
     history = cache.get(f'{file_name}_congestion_history')
 
     if not history:
