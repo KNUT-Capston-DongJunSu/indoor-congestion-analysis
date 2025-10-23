@@ -26,6 +26,7 @@ body {
     display: none !important; 
 }
 
+
 /* =================================================== */
 /* 상단 상태바 스타일 (모바일 앱 느낌) */
 /* =================================================== */
@@ -34,7 +35,7 @@ body {
     justify-content: space-between; 
     align-items: center; 
     padding: 12px 20px;
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(255, 255, 255, 1);
     backdrop-filter: blur(20px);
     border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
     height: 60px;
@@ -47,16 +48,27 @@ body {
     z-index: 1000;
 }
 
-.header-placeholder { 
-    width: 60px;
+.main-title {
+    display: flex;
+    align-items: center;
+    gap: 4px; /* 아이콘과 텍스트 간격 */
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: -0.3px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-.main-title { 
-    font-size: 18px; 
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -0.3px;
+.main-title img {
+    width: 24px;
+    height: 24px;
 }
+
+/* .header-placeholder { 
+    width: 60px;
+} */
 
 .clock { 
     font-size: 13px; 
@@ -130,6 +142,7 @@ body {
 /* =================================================== */
 .info-panel .header {
     margin-bottom: 24px;
+    text-align: center; /* 중앙 정렬 추가 */
 }
 
 .info-panel .header h2 { 
@@ -366,87 +379,59 @@ body {
 /* 하단 탭바 (네이티브 앱 스타일) - 모든 화면에서 표시 */
 /* =================================================== */
 .bottom-nav {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 100% !important;
-    max-width: 430px !important;
-    height: 80px !important;
-    background: rgba(0, 0, 0, 0.95) !important;
-    backdrop-filter: blur(20px) !important;
-    border-top: 0.5px solid rgba(255, 255, 255, 0.1) !important;
-    display: flex !important;
-    justify-content: space-around !important;
-    align-items: center !important;
-    padding: 0 20px !important;
-    z-index: 1000 !important;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3) !important;
-}
-
-.bottom-nav .menu {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
     width: 100%;
-}
-
-.bottom-nav .menu ul {
+    max-width: 430px;
+    background: #ffffff;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
     display: flex;
     justify-content: space-around;
-    align-items: center;
-    list-style: none;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    height: 100%;
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom)); /* 아이폰 노치 대응 */
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.bottom-nav .menu li {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-}
-
-.bottom-nav .menu a {
+.nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    color: rgba(255, 255, 255, 0.5);
     gap: 4px;
-    padding: 8px 16px;
+    padding: 8px 20px;
+    text-decoration: none;
+    color: #9ca3af;
     transition: all 0.2s ease;
-    position: relative;
+    border-radius: 12px;
+    min-width: 70px;
 }
 
-.bottom-nav .menu li.active a {
-    color: #8B5CF6;
+.nav-item:hover {
+    background: rgba(108, 92, 231, 0.05);
 }
 
-.bottom-nav .menu i {
-    font-size: 24px;
+.nav-item.active {
+    color: #6C5CE7;
 }
 
-.bottom-nav .menu span {
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2;
+    transition: all 0.2s ease;
+}
+
+.nav-item.active .nav-icon {
+    transform: scale(1.1);
+}
+
+.nav-label {
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: -0.2px;
 }
 
-.bottom-nav .menu li.active a::before {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 32px;
-    height: 3px;
-    background: #8B5CF6;
-    border-radius: 0 0 3px 3px;
-}
-
-/* 추가 스타일 */
 .live-badge {
     display: inline-flex;
     align-items: center;
@@ -454,11 +439,9 @@ body {
     padding: 6px 12px;
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
-    color: #ef4444;
-    margin-bottom: 16px;
-    animation: pulse-badge 2s ease-in-out infinite;
+    transition: all 0.3s ease;
 }
 
 .live-dot {
@@ -469,14 +452,41 @@ body {
     animation: blink 1.5s ease-in-out infinite;
 }
 
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+
+/* 활성 상태 */
+.live-badge.active {
+    color: #10b981;
+    border: 1px solid #10b981;
 }
 
-@keyframes pulse-badge {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
+.live-badge.active .live-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+/* 대기 상태 */
+.live-badge.standby {
+    color: #94a3b8;
+    border: 1px solid #94a3b8;
+}
+
+.live-badge.standby .live-dot {
+    width: 8px;
+    height: 8px;
+    background: #94a3b8;
+    border-radius: 50%;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
 }
 
 .dashboard-card {
@@ -508,9 +518,12 @@ body {
 
 .dashboard-item .value {
     font-size: 28px;
-    font-weight: 800;
+    font-weight: 1000;
     line-height: 1;
     margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dashboard-item .label {
@@ -525,13 +538,14 @@ body {
 }
 
 .time-slot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: rgba(139, 92, 246, 0.08);
-    border-radius: 12px;
-    transition: all 0.2s ease;
+  display: flex;                 /* 1. 자식 요소들을 가로로 배치 */
+  align-items: center;           /* 2. 모든 요소를 세로로 가운데 정렬 */
+  
+  /* --- 아래는 디자인을 위한 예시 스타일 --- */
+  background-color: #f3e8ff; /* 연보라색 배경 (예시) */
+  border-radius: 12px;         /* 둥근 모서리 */
+  padding: 16px;               /* 내부 여백 */
+  margin-bottom: 8px;          /* 슬롯 간의 간격 */
 }
 
 .time-slot:active {
@@ -540,14 +554,20 @@ body {
 }
 
 .time-slot .time {
-    font-weight: 600;
-    color: #1a1a1a;
+  flex-basis: 80px;  /* 3. 시간 텍스트가 차지할 기본 너비 고정 (HH:MM:SS) */
+  flex-shrink: 0;    /* (줄어들지 않음) */
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
 }
 
 .congestion-bar {
-    display: flex;
-    gap: 4px;
-    align-items: center;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  
+  flex-grow: 1;          /* 4. 남은 공간을 모두 차지 (가운데 배치됨) */
+  justify-content: center; /* 5. 점들을 bar 안에서 가운데 정렬 */
 }
 
 .congestion-dot {
@@ -562,9 +582,13 @@ body {
 }
 
 .time-slot .status {
-    font-size: 13px;
-    font-weight: 500;
-    color: #8B5CF6;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8B5CF6;
+  
+  flex-basis: 70px;  /* 6. 상태 텍스트가 차지할 기본 너비 고정 */
+  flex-shrink: 0;    /* (줄어들지 않음) */
+  text-align: right; /* 7. 텍스트를 오른쪽 정렬 */
 }
 
 .recommend-card {
@@ -600,7 +624,7 @@ body {
     color: #22c55e;
 }
 
-.quick-actions {
+/* .quick-actions {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
@@ -636,9 +660,9 @@ body {
     font-size: 13px;
     font-weight: 600;
     color: #1a1a1a;
-}
+} */
 
-.trend-chart {
+/* .trend-chart {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -673,7 +697,7 @@ body {
     font-size: 11px;
     font-weight: 600;
     color: rgba(0, 0, 0, 0.6);
-}
+} */
 
 .info-row {
     display: flex;
@@ -700,7 +724,7 @@ body {
     color: #1a1a1a;
 }
 
-.weather-card {
+/* .weather-card {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1));
     border-radius: 20px;
     padding: 16px 20px;
@@ -728,6 +752,141 @@ body {
     font-size: 13px;
     color: rgba(0, 0, 0, 0.6);
     margin-top: 2px;
+} */
+
+.congestion-display {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin: 16px 0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.congestion-display h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+}
+
+/* 막대 그래프 컨테이너 */
+.congestion-bars {
+    margin-bottom: 20px;
+}
+
+.bar-container {
+    width: 100%;
+    height: 40px;
+    background: #f1f3f5;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 20px;
+    transition: all 0.6s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 16px;
+    font-weight: 700;
+    color: white;
+    font-size: 14px;
+}
+
+/* 혼잡도 레벨별 색상 */
+.bar-fill[data-level="0"] {
+    width: 0%;
+    background: #e5e7eb;
+}
+
+.bar-fill[data-level="1"] {
+    width: 25%;
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.bar-fill[data-level="2"] {
+    width: 50%;
+    background: linear-gradient(90deg, #10b981, #fbbf24);
+}
+
+.bar-fill[data-level="3"] {
+    width: 75%;
+    background: linear-gradient(90deg, #fbbf24, #f97316);
+}
+
+.bar-fill[data-level="4"] {
+    width: 100%;
+    background: linear-gradient(90deg, #f97316, #ef4444);
+}
+
+/* 애니메이션 효과 */
+.bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* 라벨 */
+.congestion-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px;
+}
+
+.congestion-labels .label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+/* 정보 카드 */
+.congestion-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.info-item {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+.info-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+
+.info-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1a1a;
 }
 
 /* =================================================== */

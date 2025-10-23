@@ -1,6 +1,3 @@
-W_i = 0.85
-frame_width, frame_height = 1270, 720
-
 def calc_spatial_density(tracked_objects, scale=1000):
     centers = []
     for x1, y1, x2, y2, *_ in tracked_objects:

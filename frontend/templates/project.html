@@ -18,8 +18,8 @@
 <body>
     <!-- 상단 상태바 -->
     <header class="top-header">
-        <div class="header-placeholder"></div>
-        <h1 class="main-title">빈자리</h1>
+        <!-- <div class="header-placeholder"></div> -->
+        <h1 class="main-title"><img src="{%static './image/logo.png' %}" alt="빈자리 로고" class="main-icon">빈자리</h1>
         <div id="clock" class="clock"></div>
     </header>
 
@@ -29,10 +29,10 @@
             <!-- 홈 화면 -->
             <section class="info-panel content-panel active" id="home-view">
                 <div class="header">
-                    <h2>스타벅스 대구점</h2>
+                    <h2>빈자리 데모</h2>
                     <span class="live-badge">
                         <span class="live-dot"></span>
-                        실시간 모니터링 중
+                        <span class="status-text">대기 중</span>
                     </span>
                 </div>
 
@@ -61,8 +61,8 @@
                         <div class="recommend-icon">💡</div>
                         <div class="recommend-content">
                             <h4>방문하기 좋은 시간</h4>
-                            <p class="time-highlight">오후 2시 - 4시</p>
-                            <p>평균 대기시간 2분</p>
+                            <p class="time-highlight">예측 중...</p>
+                            <p>평균 대기시간 예측 중...</p>
                         </div>
                     </div>
                 </div>
@@ -72,53 +72,49 @@
                     <h3>⏰ 시간대별 예상 혼잡도</h3>
                     <div class="time-slots">
                         <div class="time-slot">
-                            <span class="time">08:00</span>
+                            <span class="time">00:01</span>
                             <div class="congestion-bar">
-                                <div class="congestion-dot active"></div>
                                 <div class="congestion-dot active"></div>
                                 <div class="congestion-dot"></div>
                                 <div class="congestion-dot"></div>
                                 <div class="congestion-dot"></div>
                             </div>
-                            <span class="status">여유</span>
+                            <span class="status">데이터 수집 중...</span>
                         </div>
                         <div class="time-slot">
-                            <span class="time">12:00</span>
+                            <span class="time">00:02</span>
                             <div class="congestion-bar">
                                 <div class="congestion-dot active"></div>
                                 <div class="congestion-dot active"></div>
-                                <div class="congestion-dot active"></div>
-                                <div class="congestion-dot active"></div>
-                                <div class="congestion-dot active"></div>
+                                <div class="congestion-dot "></div>
+                                <div class="congestion-dot"></div>
                             </div>
-                            <span class="status">매우 혼잡</span>
+                            <span class="status">데이터 수집 중...</span>
                         </div>
                         <div class="time-slot">
-                            <span class="time">15:00</span>
+                            <span class="time">00:03</span>
                             <div class="congestion-bar">
                                 <div class="congestion-dot active"></div>
                                 <div class="congestion-dot active"></div>
                                 <div class="congestion-dot active"></div>
                                 <div class="congestion-dot"></div>
-                                <div class="congestion-dot"></div>
                             </div>
-                            <span class="status">보통</span>
+                            <span class="status">데이터 수집 중...</span>
                         </div>
-                        <div class="time-slot">
-                            <span class="time">18:00</span>
+                        <!-- <div class="time-slot">
+                            <span class="time"></span>
                             <div class="congestion-bar">
                                 <div class="congestion-dot active"></div>
                                 <div class="congestion-dot active"></div>
-                                <div class="congestion-dot"></div>
-                                <div class="congestion-dot"></div>
-                                <div class="congestion-dot"></div>
+                                <div class="congestion-dot active"></div>
+                                <div class="congestion-dot active"></div>
                             </div>
-                            <span class="status">여유</span>
-                        </div>
+                            <span class="status"></span>
+                        </div> -->
                     </div>
                 </div>
 
-                <!-- 4. 날씨 카드 -->
+                <!-- 4. 날씨 카드
                 <div class="card">
                     <div class="weather-card">
                         <div class="weather-icon">☀️</div>
@@ -127,7 +123,7 @@
                             <div class="desc">맑음 · 날씨가 좋아 혼잡할 수 있어요</div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- 5. 캐러셀 -->
                 <div class="card">
@@ -145,7 +141,7 @@
                     </div>
                 </div>
 
-                <!-- 6. 퀵 액션 버튼 -->
+                <!-- 6. 퀵 액션 버튼
                 <div class="quick-actions">
                     <div class="quick-btn" onclick="document.getElementById('population-view-btn').click()">
                         <i class="fa-solid fa-chart-line"></i>
@@ -159,10 +155,10 @@
                         <i class="fa-solid fa-bell"></i>
                         <span>알림</span>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- 7. 주간 트렌드 -->
-                <div class="card">
+                <!-- <div class="card">
                     <h3>📈 이번 주 혼잡도 트렌드</h3>
                     <div class="trend-chart">
                         <div class="trend-day">
@@ -222,7 +218,7 @@
                             <div class="trend-label">일</div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- 8. 매장 정보 -->
                 <div class="card">
@@ -257,8 +253,21 @@
                         <h3>실시간 인구 현황</h3>
                         
                         <!-- 혼잡도 아이콘 -->
-                        <div class="icon">
+                        <!-- <div class="icon">
                             <i id="density_Icon" class="fa-solid fa-face-grin-beam"></i>
+                        </div> -->
+
+                        <div class="congestion-bars">
+                            <div class="bar-container">
+                                <div class="bar-fill" id="congestion-bar" data-level="0"></div>
+                            </div>
+                            
+                            <div class="congestion-labels">
+                                <span class="label">여유</span>
+                                <span class="label">보통</span>
+                                <span class="label">혼잡</span>
+                                <span class="label">매우혼잡</span>
+                            </div>
                         </div>
                         
                         <!-- 혼잡도 정보 -->
@@ -281,30 +290,31 @@
         </main>
     </div>
 
-    <!-- 하단 탭바 -->
     <nav class="bottom-nav">
-        <div class="menu">
-            <ul>
-                <li class="active" id="home-tab">
-                    <a href="#" onclick="return false;">
-                        <i class="fa-solid fa-house"></i>
-                        <span>홈</span>
-                    </a>
-                </li>
-                <li id="population-view-btn">
-                    <a href="#" onclick="return false;">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <span>인구</span>
-                    </a>
-                </li>
-                <li id="video-view-btn">
-                    <a href="#" onclick="return false;">
-                        <i class="fa-solid fa-video"></i>
-                        <span>영상</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
+        <a href="/" class="nav-item active" id="home-tab">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span class="nav-label">홈</span>
+        </a>
+        
+        <a href="/analytics" class="nav-item" id="population-view-btn">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span class="nav-label">분석</span>
+        </a>
+        
+        <a href="/video" class="nav-item" id="video-view-btn">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
+            <span class="nav-label">영상</span>
+        </a>
     </nav>
 
     <script src="{% static 'script.js' %}"></script>

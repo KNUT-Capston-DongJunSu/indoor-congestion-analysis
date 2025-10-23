@@ -1,90 +1,119 @@
-import time, io
-import matplotlib; matplotlib.use('Agg')  # GUI 백엔드가 없는 환경에서 Matplotlib 사용 설정
+import time, io, os
+from datetime import datetime
+import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from functools import wraps
 
-from django.http import JsonResponse
-from django.http import HttpResponse
-from django.http import StreamingHttpResponse
 from django.core.cache import cache
+from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse, HttpResponse, StreamingHttpResponse
 
+from .apps import VideostreamConfig # 상태 확인용
 from .manager.stream_manager import stream_manager
+from .analytics.prediction_system import RealtimeCongestionPredictor
 
+def predictor_api_view(view_func):
+    """
+    Predictor API 뷰를 위한 데코레이터:
+    1. Predictor 존재 여부 확인
+    2. view_func에 'predictor' 객체를 인자로 전달
+    3. 모든 예외를 처리하여 500 JsonResponse로 반환
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        predictor = VideostreamConfig.predictor
+        if not predictor:
+            return JsonResponse({
+                'error': '예측 시스템이 초기화되지 않았습니다.'
+            }, status=503)
+        try:
+            # 뷰 함수에 predictor를 키워드 인자로 전달
+            return view_func(request, predictor=predictor, *args, **kwargs)
+        except Exception as e:
+            # 예외 발생 시 일관된 에러 응답 반환
+            return JsonResponse({'error': str(e)}, status=500)
+    return _wrapped_view
+
+@require_http_methods(["GET"])
 def live_stream_view(request, file_name):
-    """
-    요청된 비디오의 처리 스레드를 실행(필요시)하고,
-    캐시에서 프레임을 가져와 스트리밍하는 뷰.
-    """
-    # 👈 2. 이 뷰가 호출될 때, 해당 비디오 처리 스레드가 실행되도록 요청
+    """요청된 비디오의 처리 스레드를 실행하고 프레임을 스트리밍합니다."""
+    # 특정 비디오 프로세서 재시작 및 캐시 클리어
+    stream_manager.stop_processor(file_name) 
+    cache.delete_many([
+        f'{file_name}_latest_frame_bytes',
+        f'{file_name}_current_congestion_status',
+        f'{file_name}_congestion_history'
+    ])
     stream_manager.start_processor_if_not_running(file_name)
 
-    # 👈 3. 기존의 프레임 생성 및 전송 로직은 그대로 유지
     def frame_generator():
         while True:
-            # file_name을 사용하여 고유한 캐시 키를 조회
-            cache_key = f'{file_name}_latest_frame_bytes'
-            frame_bytes = cache.get(cache_key)
+            frame_bytes = cache.get(f'{file_name}_latest_frame_bytes')
             if frame_bytes:
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-            
-            # CPU 부하를 줄이기 위한 지연
-            time.sleep(0.03)
+            time.sleep(0.03) # CPU 부하 감소
 
     return StreamingHttpResponse(
         frame_generator(),
         content_type='multipart/x-mixed-replace; boundary=frame'
     )
 
+@require_http_methods(["GET"])
 def congestion_status(request, file_name):
-    """현재 혼잡도 상태를 JSON으로 반환하는 API 뷰"""
-    # ★★★ 전역 변수 대신 Django 캐시에서 상태 조회 ★★★
+    """특정 스트림의 현재 혼잡도 상태를 JSON으로 반환합니다."""
     stream_manager.start_processor_if_not_running(file_name)
-    
     status = cache.get(f'{file_name}_current_congestion_status', {
-        "level": 0,
-        "label": "측정중",
-        "occupancy": 0,
-        "object_count": 0
-    }) # 캐시에 값이 없으면 기본값 반환
+            "level": 1, "label": "측정중", "occupancy": 0, "object_count": 0
+        })
     return JsonResponse(status)
 
-
+@require_http_methods(["GET"])
 def congestion_graph_view(request, file_name):
-    """캐시에 저장된 데이터를 바탕으로 통일된 y축을 사용하는 그래프 이미지를 생성하여 반환"""
+    """특정 스트림의 혼잡도 이력 그래프 이미지를 반환합니다."""
     stream_manager.start_processor_if_not_running(file_name)
-
     history = cache.get(f'{file_name}_congestion_history')
 
     if not history:
         return HttpResponse("아직 데이터가 수집되지 않았습니다.", status=204)
 
     timestamps, counts = zip(*history)
-
-    # --- Matplotlib으로 그래프 생성 (수정된 버전) ---
-    fig, ax1 = plt.subplots(figsize=(10, 6))
-
-    # 1. 막대 그래프 (ax1에 그리기)
-    ax1.bar(timestamps, counts, color='skyblue', label='Occupation')
     
-    # 2. 꺾은선 그래프 (동일한 ax1에 그리기)
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+    ax1.bar(timestamps, counts, color='skyblue', label='Occupation')
     ax1.plot(timestamps, counts, color='red', marker='o', linestyle='-', label='Trend')
-
-    # Y축 라벨을 하나로 통합합니다.
     ax1.set_xlabel("Time")
-    ax1.set_ylabel("Occupation / Trend", color='black')
-    ax1.tick_params(axis='y', labelcolor='black')
+    ax1.set_ylabel("Occupation / Trend")
     ax1.tick_params(axis='x', rotation=45)
-
-    # 범례(legend)를 추가하여 두 그래프를 명확히 구분해 줍니다.
     ax1.legend()
-
     fig.suptitle('Time-based Congestion Rate')
     fig.tight_layout()
 
-    # --- 그래프를 이미지 버퍼에 저장 ---
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     plt.close(fig)
     buf.seek(0)
     
     return HttpResponse(buf.getvalue(), content_type='image/png')
+
+@require_http_methods(["GET"])
+def confirm_processor_alive(request):
+    """활성화된 비디오 프로세서가 있는지 확인합니다."""
+    if stream_manager.get_active_processors():
+        return JsonResponse({'status': "실시간 모니터링 중"})
+    else:
+        return JsonResponse({'status': "대기 중"})
+
+# --- 2. 전역 예측 시스템(Predictor) API 뷰 ---
+
+@require_http_methods(["GET"])
+@predictor_api_view # ✨ 데코레이터 적용
+def get_predictions(request, predictor: RealtimeCongestionPredictor):
+    """예측 결과 반환"""    
+    predictions = predictor.predict()
+    
+    return JsonResponse({
+        'predictions': predictions,
+        'timestamp': datetime.now().isoformat()
+    })
+

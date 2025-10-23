@@ -10,7 +10,7 @@ def main_page(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('video/', include('backend.videostream.urls')),
+    path('stream/', include('backend.videostream.urls')),
     path('', main_page, name='main'),
 ]
 

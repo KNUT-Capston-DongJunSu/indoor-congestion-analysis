@@ -6,7 +6,13 @@ DEBUG = True
 BASE_DIR = Path(__file__).resolve().parents[2]
 SECRET_KEY = config('SECRET_KEY')
 VIDEO_DIR = os.path.join(BASE_DIR, 'frontend', 'static', 'video')
-MODEL_PATH = os.path.join(BASE_DIR, 'models', 'capdi-y8m-640-crowdah-v1-fp32-pt-20250609.pt')
+MODEL_DIR = os.path.join(BASE_DIR, 'models')
+YOLO_MODEL_NAME = 'capdi-y8m-640-crowdah-v1-fp32-pt-20250609.pt'
+REGRESSION_MODEL_NAME = 'congestion_predictor_model_v2.pkl'
+
+DATA_COLLECTION_INTERVAL = 2
+PREDICTOR_MAX_HISTORY = 100
+PREDICTOR_MIN_SAMPLES = 5
 
 ROOT_URLCONF = "backend.config.urls"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

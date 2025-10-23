@@ -1,11 +1,13 @@
-import torch, cv2
+import torch, os, cv2
 from ultralytics import YOLO
 from .preprocessor import PreProcessor
 from .postprocessing import process_predicted_results
+from backend.config.settings import MODEL_DIR, YOLO_MODEL_NAME
 
 class YoloManager:
-    def __init__(self, model_path):    
+    def __init__(self, model_name=YOLO_MODEL_NAME):    
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        model_path = os.path.join(MODEL_DIR, model_name)
         self.model = YOLO(model_path).to(self.device)
 
     def train_yolo(self, config_path, epochs=100, imgsz=640, batch=16, project='results', name=None, lr0=0.01, optimizer='SGD', **kwargs):
@@ -53,6 +55,6 @@ class YoloManager:
             )[0]
         return process_predicted_results(result)
     
-    
+YOLO_MODEL = YoloManager(YOLO_MODEL_NAME)
     
         

@@ -1,9 +1,10 @@
 import os, cv2, time, threading
 from collections import deque 
 from django.core.cache import cache
-from backend.config.settings import BASE_DIR, VIDEO_DIR, MODEL_PATH
+from backend.config.settings import VIDEO_DIR
 
 from ocsort import OCSort
+from ..apps import VideostreamConfig
 from .video_manager import BaseVideoStreamer
 from ..analytics.occupancy import calc_spatial_density
 from ..analytics.calc_congestion import CongestionCalculator
@@ -18,6 +19,7 @@ class VideoProcessor(threading.Thread):
     def __init__(self, file_name, model):
         super().__init__()
         self.daemon = True  # 메인 스레드 종료 시 함께 종료
+        self.running = True  # 중지 플래그 추가
         self.history_lock = threading.Lock()  # history 데이터 업데이트 시 경쟁 조건 방지를 위한 락
 
         self.yolo_model = model
@@ -30,16 +32,20 @@ class VideoProcessor(threading.Thread):
         self.frame_cache_key = f'{self.file_name}_latest_frame_bytes'
         self.status_cache_key = f'{self.file_name}_current_congestion_status'
         self.history_cache_key = f'{self.file_name}_congestion_history'
-        
+
+    def stop(self):
+        """프로세서 중지 플래그 설정"""
+        self.running = False
+
     def run(self):
         """스레드가 시작되면 실행되는 메인 영상 처리 루프입니다."""
         last_update_time = 0
         frame_id = 0
 
-        while self.streamer.cap.isOpened():
+        while self.running and self.streamer.cap.isOpened():
             ret, frame = self.streamer.cap.read()
             frame_id += 1
-            if frame_id % 3 != 0:
+            if frame_id % 13 != 0:
                 continue
             
             if not ret:
@@ -67,7 +73,8 @@ class VideoProcessor(threading.Thread):
             # 혼잡도 데이터를 고유 캐시 키에 저장
             congestion_data = {"level": level, "label": label, "occupancy": occupancy, "object_count": object_count}
             cache.set(self.status_cache_key, congestion_data, timeout=10)
-
+            self.perform_data_collection_once(congestion_data)
+            
             # --- 시간별 데이터 누적 저장 ---
             current_time = time.time()
             if current_time - last_update_time >= 1: # 1초마다 업데이트
@@ -80,3 +87,24 @@ class VideoProcessor(threading.Thread):
                     cache.set(self.history_cache_key, history, timeout=3600)
 
         self.streamer.cap.release()
+
+    def perform_data_collection_once(self, status):
+        predictor = VideostreamConfig.predictor
+        if not predictor:
+            print("Data collection failed: Predictor not initialized.")
+            return None
+        
+        try:
+            if status:
+                # 2. Predictor에 데이터 추가
+                predictor.add_data(
+                    count=status.get('object_count', 0),
+                    level=status.get('level', 3)
+                )
+                return status
+            else:
+                print("Data collection failed: No status returned.")
+                return None
+        except Exception as e:
+            print(f"Data collection exception: {e}")
+            return None
