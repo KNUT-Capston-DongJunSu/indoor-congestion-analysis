@@ -13,6 +13,10 @@ docs/
 
 results/
 
+frontend/static/video/restaurant.mp4
+frontend/static/video/test.mp4
+frontend/static/video/train.mp4
+
 *.json
 
 images/
