@@ -18,7 +18,3 @@ results/
 *.json
 
 images/
-
-*.pkl
-
-models/*.pkl
