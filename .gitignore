@@ -9,8 +9,6 @@
 
 .vscode
 
-*.mp4
-
 docs/
 
 results/
