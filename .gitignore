@@ -18,3 +18,5 @@ results/
 *.json
 
 images/
+
+results/predict/*.mp4
