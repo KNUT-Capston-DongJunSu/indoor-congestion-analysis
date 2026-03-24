@@ -1,23 +1,13 @@
 # python cache
 **/__pycache__/
 
-# Environments
-.env
-
-# PyCharm Configuration
+# IDE Configuration
 .idea/
+.vscode/
 
-.vscode
-
-docs/
-
-results/
-
-frontend/static/video/restaurant.mp4
-frontend/static/video/test.mp4
-frontend/static/video/train.mp4
-
-*.json
+# frontend/static/video/restaurant.mp4
+# frontend/static/video/test.mp4
+# frontend/static/video/train.mp4
 
 images/
 
