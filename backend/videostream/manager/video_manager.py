@@ -54,7 +54,7 @@ class BaseVideoCap:
 
 class BaseVideoStreamer:
     
-    output_dir = "./results"
+    output_dir = "./results/"
     os.makedirs(output_dir, exist_ok=True)
 
     def __init__(self, video_path, save_enabled=False, output_name=None):

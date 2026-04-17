@@ -12,3 +12,5 @@
 images/
 
 results/predict/*.mp4
+
+*.env

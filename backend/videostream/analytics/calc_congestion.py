@@ -89,10 +89,10 @@ class CongestionCalculator:
         
         # 절대 임계값과 비교
         if smoothed_score <= self.T1_NORMAL:
-            return 1, "원활"
+            return 1, "Normal"
         elif smoothed_score <= self.T2_CROWDED:
-            return 2, "보통"
+            return 2, "Common"
         elif smoothed_score <= self.T3_CONGESTED:
-            return 3, "혼잡"
+            return 3, "Crowded"
         else:
-            return 4, "매우 혼잡"
+            return 4, "Very Crowded"

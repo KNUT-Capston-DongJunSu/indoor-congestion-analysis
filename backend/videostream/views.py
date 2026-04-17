@@ -38,11 +38,12 @@ def predictor_api_view(view_func):
 def live_stream_view(request, file_name):
     """요청된 비디오의 처리 스레드를 실행하고 프레임을 스트리밍합니다."""
     # 특정 비디오 프로세서 재시작 및 캐시 클리어
-    stream_manager.stop_processor(file_name) 
+    stream_manager.stop_processor(file_name)
     cache.delete_many([
         f'{file_name}_latest_frame_bytes',
         f'{file_name}_current_congestion_status',
-        f'{file_name}_congestion_history'
+        f'{file_name}_congestion_history',
+        f'{file_name}_video_finished',  # 이전 영상 종료 신호 초기화
     ])
     stream_manager.start_processor_if_not_running(file_name)
 
@@ -52,6 +53,12 @@ def live_stream_view(request, file_name):
             if frame_bytes:
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+
+            # VideoProcessor가 영상 끝에서 설정한 종료 신호 확인
+            # 신호가 있으면 제너레이터를 종료하여 HTTP 스트리밍 응답을 닫음
+            if cache.get(f'{file_name}_video_finished'):
+                break
+
             time.sleep(0.03) # CPU 부하 감소
 
     return StreamingHttpResponse(
@@ -62,7 +69,7 @@ def live_stream_view(request, file_name):
 @require_http_methods(["GET"])
 def congestion_status(request, file_name):
     """특정 스트림의 현재 혼잡도 상태를 JSON으로 반환합니다."""
-    stream_manager.start_processor_if_not_running(file_name)
+    # start_processor_if_not_running 제거 - 영상 종료 후 폴링으로 프로세서가 재시작되는 문제 방지
     status = cache.get(f'{file_name}_current_congestion_status', {
             "level": 1, "label": "측정중", "occupancy": 0, "object_count": 0
         })
@@ -71,7 +78,7 @@ def congestion_status(request, file_name):
 @require_http_methods(["GET"])
 def congestion_graph_view(request, file_name):
     """특정 스트림의 혼잡도 이력 그래프 이미지를 반환합니다."""
-    stream_manager.start_processor_if_not_running(file_name)
+    # start_processor_if_not_running 제거 - 영상 종료 후 폴링으로 프로세서가 재시작되는 문제 방지
     history = cache.get(f'{file_name}_congestion_history')
 
     if not history:

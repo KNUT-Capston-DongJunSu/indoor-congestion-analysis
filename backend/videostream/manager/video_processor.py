@@ -27,7 +27,7 @@ class VideoProcessor(threading.Thread):
         self.tracker = OCSort(det_thresh=0.3, max_age=50, min_hits=1)
 
         video_path = os.path.join(VIDEO_DIR, file_name)
-        self.streamer = BaseVideoStreamer(video_path)
+        self.streamer = BaseVideoStreamer(video_path, True, file_name)
         self.file_name = file_name
         self.frame_cache_key = f'{self.file_name}_latest_frame_bytes'
         self.status_cache_key = f'{self.file_name}_current_congestion_status'
@@ -45,12 +45,15 @@ class VideoProcessor(threading.Thread):
         while self.running and self.streamer.cap.isOpened():
             ret, frame = self.streamer.cap.read()
             frame_id += 1
-            if frame_id % 13 != 0:
-                continue
+            # if frame_id % 13 != 0:
+            #     continue
             
             if not ret:
-                self.streamer.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                continue
+                # 영상의 마지막 프레임에 도달 - 루프 반복 대신 종료 처리
+                # 종료 신호를 캐시에 저장하여 frame_generator가 스트리밍을 중단할 수 있도록 함
+                cache.set(f'{self.file_name}_video_finished', True, timeout=60)
+                self.running = False
+                break
 
             # --- 딥러닝 및 혼잡도 계산 로직 ---
             results = self.yolo_model.smart_predict_yolo(frame=frame, conf=0.07)
@@ -63,6 +66,10 @@ class VideoProcessor(threading.Thread):
             print(f"[{self.file_name}] Occupancy: {occupancy:.2f}, Label: {label}")
             plot = draw_tracking_boxes(frame, tracked_objects, label)
             
+            # 처리된 프레임을 결과 영상 파일에 저장
+            if self.streamer.save_enabled:
+                self.streamer.video_writer.write(plot)
+
             # JPEG 이미지로 인코딩
             ret, buffer = cv2.imencode('.jpg', plot)
             if ret:
@@ -87,6 +94,11 @@ class VideoProcessor(threading.Thread):
                     cache.set(self.history_cache_key, history, timeout=3600)
 
         self.streamer.cap.release()
+
+        # 영상 저장이 활성화된 경우, 모든 프레임 쓰기가 끝난 후 파일을 닫아 저장 완료
+        if self.streamer.save_enabled:
+            self.streamer.video_writer.close_writer()
+            print(f"[{self.file_name}] 결과 영상 저장 완료: {self.streamer.output_dir}{self.file_name}")
 
     def perform_data_collection_once(self, status):
         predictor = VideostreamConfig.predictor
