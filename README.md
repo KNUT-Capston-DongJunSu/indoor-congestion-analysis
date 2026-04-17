@@ -1,63 +1,71 @@
-# AnEmptySeat (빈자리)
+# 사람 머리 탐지와 선 밀도 분석을 이용한 실시간 실내 혼잡도 분석 시스템
 
-**Real-time indoor space congestion detection and prediction web application.**
+**Real-time Indoor Congestion Analysis System Using Transfer Learning-based Head Detection and Line Density Analysis**
 
-AnEmptySeat analyzes live video streams from cameras installed in cafes, restaurants, and other indoor spaces to estimate the current occupancy level and predict future congestion. Users can check real-time crowd status and recommended visit times through an intuitive web dashboard — without any dedicated hardware beyond a standard camera.
+![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python)
+![Django](https://img.shields.io/badge/Django-5.2-092E20?logo=django)
+![YOLOv8](https://img.shields.io/badge/YOLOv8m-Ultralytics-FF6B35)
+![mAP50](https://img.shields.io/badge/mAP50-0.9247-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+전이학습 기반 사람 머리 탐지(YOLOv8m), OC-SORT 객체 추적, 그리고 객체 간 **연결선 밀도(Line Density)** 알고리즘을 결합하여 카메라 한 대만으로 실내 공간의 혼잡도를 실시간 4단계로 분류하고 웹 대시보드에 스트리밍하는 시스템입니다.
+
+> Transfer learning-based head detection (YOLOv8m) + OC-SORT tracking + novel **line density algorithm** — classifies indoor congestion into 4 levels in real time using a single camera, no dedicated hardware required.
 
 ---
 
-## Background & Motivation
+## Demo
 
-Existing seat-management solutions such as POS-based systems or IoT sensor arrays require per-seat hardware installation, making them expensive to deploy and maintain. A single hardware failure can cascade into data inconsistencies, and the more sensors a system uses the higher its compounded failure probability becomes.
+<!-- Add dashboard screenshot here: docs/assets/dashboard.png -->
+<!-- Add YOLO inference result here: docs/assets/inference.png -->
 
-AnEmptySeat solves these problems with a **software-only approach**: a single camera feeds a deep-learning pipeline that detects and tracks people, computes a congestion score, and streams the results to a web dashboard — no per-seat hardware required.
+> Screenshots coming soon. See [docs/how_to_run.md](docs/how_to_run.md) to run locally.
 
 ---
 
-## System Architecture
+## How It Works
+
+The system is composed of **6 modules** that form a real-time analysis pipeline:
 
 ```
-Camera / Video File
-        │
-        ▼
-  ┌─────────────────────────────────────────────────┐
-  │               Cloud Server (AWS EC2)            │
-  │                                                 │
-  │  YOLOv8m ──► OC-SORT ──► Line Density ──► DB   │
-  │  Detection    Tracking    Algorithm      MySQL  │
-  │                               │                 │
-  │              Django REST API / WebSocket         │
-  └───────────────────┬─────────────────────────────┘
-                      │
-                      ▼
-             Web Browser Dashboard
-         (real-time congestion + prediction)
+① Video Input
+      ↓
+② Head Detection  (YOLOv8m, transfer-learned on AI-Hub indoor crowd data)
+      ↓
+③ Object Tracking  (OC-SORT — stable IDs across frames, prevents duplicate counting)
+      ↓
+④ Line Density Calculation  (Euclidean distance between object pairs → edge count)
+      ↓
+⑤ Congestion Classification  (calibrated thresholds → 4-level label)
+      ↓
+⑥ Web Dashboard  (Django REST API + MJPEG stream, 30 FPS+)
 ```
 
-### Processing Pipeline
+### Why Line Density?
 
-1. **Video Input & Preprocessing** — Frames are captured from a webcam or video file via `cv2.VideoCapture`. Each frame is resized, normalized (0–1), converted from BGR to RGB, and converted to a PyTorch tensor before being passed to the model.
+Simple person-count-to-area ratios produce negligibly small values because the frame area (pixels²) dwarfs the object count. Instead, AnEmptySeat treats every detected head as a **node** and draws an **edge** between any two nodes within a configurable distance threshold. The ratio of edges to nodes naturally captures how tightly people are clustered — independent of room size or camera resolution.
 
-2. **Object Detection (YOLOv8m)** — A YOLOv8-Medium model pre-trained on the [Scut-Head](https://github.com/HCIILAB/SCUT-HEAD-Dataset-Release) dataset detects human heads in each frame. The model uses a Backbone → Neck → Head architecture and produces bounding boxes with confidence scores; overlapping boxes are filtered by NMS.
+| Level | Label | Occupancy |
+|-------|-------|-----------|
+| 1 | Relaxed (여유) | 0 – 30% |
+| 2 | Normal (보통) | 31 – 60% |
+| 3 | Congested (혼잡) | 61 – 90% |
+| 4 | Very Congested (매우 혼잡) | 91%+ |
 
-3. **Object Tracking (OC-SORT)** — Detected bounding boxes are fed into OC-SORT (Observation-Centric SORT), an improved multi-object tracker that applies observation-centric non-linear motion prediction instead of a plain Kalman filter. This keeps stable IDs across frames even during occlusion and prevents duplicate counting of the same person.
+---
 
-4. **Congestion Analysis — Line Density Algorithm** — Rather than computing a simple person-count-to-area ratio (which produces negligibly small values because frame resolution dominates the denominator), AnEmptySeat uses a novel **line density** metric:
-   - Treat every detected object as a node.
-   - Connect pairs of nodes that are within a configurable distance threshold with an edge.
-   - The density of edges (lines) relative to the number of nodes reflects how tightly packed people are.
-   - This density score is mapped to one of four congestion levels:
+## Model Performance
 
-   | Level | Occupancy | Label |
-   |-------|-----------|-------|
-   | 1 | 0 – 30% | Relaxed (여유) |
-   | 2 | 31 – 60% | Normal (보통) |
-   | 3 | 61 – 90% | Congested (혼잡) |
-   | 4 | 91%+ | Very Congested (매우 혼잡) |
+The head detection model was fine-tuned from COCO-pretrained YOLOv8m weights using the **AI-Hub Indoor/Outdoor Crowd Characteristic Dataset** (train/val split = 8:2).
 
-5. **Congestion Prediction (RandomForest)** — A `RandomForestRegressor` (scikit-learn) is trained on simulated time-series data (hour-of-day, day-of-week, historical counts). Given the current time and live person count, the model predicts congestion levels for the next N minutes/hours and surfaces the best recommended visit time.
+| Metric | Score |
+|--------|-------|
+| Precision | 0.908 |
+| Recall | 0.907 |
+| **mAP50** | **0.9247** |
+| mAP50-95 | 0.6768 |
 
-6. **Visualization & Storage** — Congestion level, object count, MJPEG video stream, and time-series prediction slots are served to the frontend and persisted in MySQL (Railway).
+<!-- Add performance graph or confusion matrix here: docs/assets/metrics.png -->
 
 ---
 
@@ -65,15 +73,15 @@ Camera / Video File
 
 | Layer | Technology |
 |-------|-----------|
-| Object Detection | YOLOv8m (Ultralytics) + Scut-Head pretrained weights |
+| Object Detection | YOLOv8m (Ultralytics) |
 | Object Tracking | OC-SORT |
 | Congestion Prediction | RandomForestRegressor (scikit-learn) |
-| Backend | Django 5.2, Django REST Framework, Python 3.10 |
-| Real-time Communication | WebSocket (Django Channels), MJPEG streaming |
+| Backend | Django 5.2, Django REST Framework |
+| Video Streaming | MJPEG via `StreamingHttpResponse` (30 FPS+) |
 | Frontend | Vanilla JavaScript, HTML5, CSS3 |
 | Database | MySQL (Railway) |
 | Deployment | Gunicorn + Nginx on AWS EC2 |
-| Security | JWT authentication, OAuth2 |
+| Security | JWT, OAuth2 |
 
 ---
 
@@ -83,95 +91,73 @@ Camera / Video File
 AnEmptySeat/
 ├── backend/
 │   └── videostream/
-│       ├── views.py              # ObjectDetector class, streaming & congestion API
-│       ├── analytics/
-│       │   ├── prediction_system.py   # PredictionModelV2: loads & runs RandomForest
-│       │   ├── calc_spatial_density.py # Line density algorithm
-│       │   └── congestion_calc.py     # CongestionCalculator: level classification
-│       └── ml/
-│           └── postprocessing/
-│               └── draw_tracking_boxes.py
+│       ├── views.py                    # Detection, streaming & API views
+│       └── analytics/
+│           ├── calc_spatial_density.py # Line density algorithm (core)
+│           ├── congestion_calc.py      # 4-level classification
+│           └── prediction_system.py    # RandomForest future prediction
 ├── frontend/
-│   └── static/
-│       └── script.js             # Vanilla JS dashboard: fetch + setInterval polling
+│   └── static/script.js               # Vanilla JS dashboard (fetch + setInterval)
 ├── models/
-│   ├── best_model.joblib         # Serialized RandomForest model
-│   └── *.pt                      # YOLOv8 weights
+│   ├── best_model.joblib               # Serialized RandomForest
+│   └── *.pt                            # YOLOv8 weights
 ├── docs/
 │   └── how_to_run.md
-├── calibrate.py                  # Congestion threshold calibration
-├── generate_data.py              # Simulated training data generator
-├── train_model.py                # Re-train the RandomForest prediction model
-├── generate_video.py             # Test video generator
+├── calibrate.py       # Calibrate congestion thresholds from sample footage
+├── generate_data.py   # Generate simulated training data
+├── train_model.py     # Re-train the prediction model
+├── generate_video.py  # Create synthetic test video
 ├── manage.py
 └── requirements.txt
 ```
 
 ---
 
-## Key API Endpoints
+## API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Main dashboard |
-| `/stream/<video_name>/` | GET | Live video stream page |
-| `/stream/video_feed/` | GET | MJPEG stream (StreamingHttpResponse) |
-| `/stream/status/<video_name>/` | GET | Current person count + congestion level (JSON, polled every 5 s) |
-| `/stream/api/predictions/` | GET | Future congestion predictions (JSON, polled every 10 s) |
-
----
-
-## Frontend Dashboard
-
-The frontend is built with **Vanilla JavaScript** (no React/Vue) for minimal overhead:
-
-- **`setupCongestionMonitor`** — polls `/stream/status/` every **5 seconds** via `fetch`, updates person count text and the visual congestion bar (`data-level` attribute).
-- **`setupPredictionUI`** — polls `/stream/api/predictions/` every **10 seconds**, displays the recommended visit time and time-slot congestion forecast for the next hour.
-- All DOM updates use `textContent` / `setAttribute` so the page never needs a full reload.
-
----
-
-## Limitations & Future Work
-
-| Area | Current Limitation | Planned Improvement |
-|------|--------------------|---------------------|
-| Prediction accuracy | Trained on simulated data; real-world variables (weather, holidays, events) are absent | Retrain on weeks of real in-store data |
-| Occlusion handling | People obscured by furniture or each other can be missed | Switch to top-view camera angle; consider YOLOv8l |
-| Scalability | MJPEG via `StreamingHttpResponse` is CPU/bandwidth-intensive under many concurrent viewers | Adopt Nginx RTMP / WebRTC / HLS-DASH for video delivery |
-| Prediction model | RandomForest with hand-crafted features | Replace with LSTM for proper time-series modelling |
-| Perspective distortion | Line-density uses 2D pixel coordinates, so depth distortion affects results | Apply homography correction for consistent real-world distances |
+| Endpoint | Description | Update Rate |
+|----------|-------------|-------------|
+| `GET /` | Main dashboard | — |
+| `GET /stream/<name>/` | Live stream page | — |
+| `GET /stream/video_feed/` | MJPEG video stream | Real-time |
+| `GET /stream/status/<name>/` | Person count + congestion level (JSON) | Every 5 s |
+| `GET /stream/api/predictions/` | Future congestion forecast (JSON) | Every 10 s |
 
 ---
 
 ## Getting Started
 
-See [docs/how_to_run.md](docs/how_to_run.md) for full setup and run instructions.
-
-### Quick start
+See [docs/how_to_run.md](docs/how_to_run.md) for the full setup guide.
 
 ```bash
-# 1. Install dependencies
 pip install -r requirements.txt
-
-# 2. (Optional) Generate training data and retrain the prediction model
-python generate_data.py
-python train_model.py
-
-# 3. (Optional) Calibrate congestion thresholds
-python calibrate.py
-
-# 4. Start the Django development server
 python manage.py runserver
 ```
 
-### Utility scripts
+<details>
+<summary>Utility scripts</summary>
 
 | Script | Purpose |
 |--------|---------|
 | `calibrate.py` | Compute optimal congestion thresholds from sample footage |
-| `generate_data.py` | Generate simulated hour/day occupancy data for model training |
-| `train_model.py` | Train and serialize the RandomForest prediction model |
+| `generate_data.py` | Generate simulated hour/day occupancy data for training |
+| `train_model.py` | Re-train and serialize the RandomForest model |
 | `generate_video.py` | Create synthetic test video clips |
+
+</details>
+
+<details>
+<summary>Known limitations & future work</summary>
+
+| Area | Current Limitation | Planned Improvement |
+|------|--------------------|---------------------|
+| Prediction data | Trained on simulated data; real-world variables absent | Retrain on weeks of real in-store data |
+| Occlusion | Overlapping people or furniture can be missed | Top-view camera angle; heavier model variant |
+| Scalability | MJPEG streaming is CPU-intensive under many viewers | Nginx RTMP / WebRTC / HLS-DASH |
+| Prediction model | RandomForest with hand-crafted features | LSTM for proper time-series modelling |
+| Perspective | 2D pixel distances ignore camera depth distortion | Homography correction for real-world distances |
+
+</details>
 
 ---
 
@@ -179,7 +165,7 @@ python manage.py runserver
 
 - [Ultralytics YOLOv8](https://docs.ultralytics.com/ko/models/yolov8/)
 - [OC-SORT](https://arxiv.org/abs/2203.14360) — Observation-Centric SORT
-- [Scut-Head Dataset](https://github.com/HCIILAB/SCUT-HEAD-Dataset-Release)
+- [AI-Hub Indoor/Outdoor Crowd Characteristic Dataset](https://aihub.or.kr)
 - Capstone Design 2025, Department of Electronic Engineering, KNUT
   - Advisor: Prof. Song Chang-ik
   - Team DongJunSu: Kim Dong-in (2222007), Kim Jun-hee (2122014)
