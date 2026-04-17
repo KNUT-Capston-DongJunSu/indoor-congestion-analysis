@@ -1,4 +1,4 @@
-# 사람 머리 탐지와 선 밀도 분석을 이용한 실시간 실내 혼잡도 분석 시스템
+# 사람 머리 탐지와 선 밀도 분석을 이용한 실시간 전이학습 기반 실내 혼잡도 분석 시스템
 
 **Real-time Indoor Congestion Analysis System Using Transfer Learning-based Head Detection and Line Density Analysis**
 
@@ -19,7 +19,7 @@
 <!-- Add dashboard screenshot here: docs/assets/dashboard.png -->
 <!-- Add YOLO inference result here: docs/assets/inference.png -->
 
-> Screenshots coming soon. See [docs/how_to_run.md](docs/how_to_run.md) to run locally.
+> Screenshots coming soon. See [docs/how_to_run.md](docs/README.md) to run locally.
 
 ---
 
@@ -43,14 +43,14 @@ The system is composed of **6 modules** that form a real-time analysis pipeline:
 
 ### Why Line Density?
 
-Simple person-count-to-area ratios produce negligibly small values because the frame area (pixels²) dwarfs the object count. Instead, AnEmptySeat treats every detected head as a **node** and draws an **edge** between any two nodes within a configurable distance threshold. The ratio of edges to nodes naturally captures how tightly people are clustered — independent of room size or camera resolution.
+Simple person-count-to-area ratios produce negligibly small values because the frame area (pixels²) dwarfs the object count. Instead, this system treats every detected head as a **node** and draws an **edge** between any two nodes within a configurable distance threshold. The **count of edges** reflects how tightly people are clustered, and is mapped to one of four congestion levels using calibrated thresholds.
 
-| Level | Label | Occupancy |
-|-------|-------|-----------|
-| 1 | Relaxed (여유) | 0 – 30% |
-| 2 | Normal (보통) | 31 – 60% |
-| 3 | Congested (혼잡) | 61 – 90% |
-| 4 | Very Congested (매우 혼잡) | 91%+ |
+| Level | Label |
+|-------|-------|
+| 1 | Relaxed (여유) |
+| 2 | Normal (보통) |
+| 3 | Congested (혼잡) |
+| 4 | Very Congested (매우 혼잡) |
 
 ---
 
@@ -79,9 +79,7 @@ The head detection model was fine-tuned from COCO-pretrained YOLOv8m weights usi
 | Backend | Django 5.2, Django REST Framework |
 | Video Streaming | MJPEG via `StreamingHttpResponse` (30 FPS+) |
 | Frontend | Vanilla JavaScript, HTML5, CSS3 |
-| Database | MySQL (Railway) |
 | Deployment | Gunicorn + Nginx on AWS EC2 |
-| Security | JWT, OAuth2 |
 
 ---
 
