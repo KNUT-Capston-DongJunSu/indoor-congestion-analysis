@@ -5,12 +5,15 @@
 .idea/
 .vscode/
 
-# frontend/static/video/restaurant.mp4
-# frontend/static/video/test.mp4
-# frontend/static/video/train.mp4
+frontend/static/image/
+frontend/static/video/
 
 images/
 
 results/predict/*.mp4
 
 *.env
+
+*.json 
+
+*.mp4
