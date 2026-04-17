@@ -47,10 +47,10 @@ Simple person-count-to-area ratios produce negligibly small values because the f
 
 | Level | Label |
 |-------|-------|
-| 1 | Relaxed (여유) |
-| 2 | Normal (보통) |
-| 3 | Congested (혼잡) |
-| 4 | Very Congested (매우 혼잡) |
+| 1 | Normal (여유) |
+| 2 | Common (보통) |
+| 3 | Crowded (혼잡) |
+| 4 | Very Crowded (매우 혼잡) |
 
 ---
 
